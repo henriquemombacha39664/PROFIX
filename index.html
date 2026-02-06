@@ -2,9 +2,44 @@
 <html>
 <head>
   <title>Mini Trading</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body style="background:#111; color:white; font-family:Arial; text-align:center; padding-top:100px;">
-  <h1>Mini Trading está online 🚀</h1>
-  <p>Em breve: gráficos insanos.</p>
+<body style="background:#111; color:white; font-family:Arial; text-align:center; padding:40px;">
+
+  <h1>Mini Trading 📈</h1>
+
+  <input 
+    id="tickerInput" 
+    placeholder="Digite o ticker (ex: PETR4)" 
+    style="padding:10px; width:250px;"
+  />
+  <button onclick="loadData()" style="padding:10px;">Buscar</button>
+
+  <pre id="output" style="text-align:left; margin-top:30px;"></pre>
+
+  <script>
+    const supabase = window.supabase.createClient(
+      "https://vlqteefeuxhovubojybd.supabase.co",
+      "sb_publishable_KmHWU0IJzCkwXBWzWMe1WQ_M-sSaxk0"
+    );
+
+    async function loadData() {
+      const ticker = document.getElementById("tickerInput").value;
+
+      const { data, error } = await supabase
+        .from("prices")
+        .select("*")
+        .eq("ticker", ticker)
+        .order("date", { ascending: true });
+
+      if (error) {
+        document.getElementById("output").innerText = "Erro: " + error.message;
+        return;
+      }
+
+      document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+    }
+  </script>
+
 </body>
 </html>
