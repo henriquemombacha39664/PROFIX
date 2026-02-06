@@ -49,4 +49,37 @@
       return;
     }
 
-    const uniqueTickers = [...new Set(data.map(item => item.tic]()
+    const uniqueTickers = [...new Set(data.map(item => item.ticker))];
+
+    const select = document.getElementById("tickerSelect");
+    uniqueTickers.forEach(ticker => {
+      const option = document.createElement("option");
+      option.value = ticker;
+      option.textContent = ticker;
+      select.appendChild(option);
+    });
+  }
+
+  async function loadData() {
+    const ticker = document.getElementById("tickerSelect").value;
+
+    const { data, error } = await supabase
+      .from("prices")
+      .select("*")
+      .eq("ticker", ticker)
+      .order("date", { ascending: true });
+
+    if (error) {
+      document.getElementById("output").innerText = error.message;
+      return;
+    }
+
+    document.getElementById("output").innerText =
+      JSON.stringify(data, null, 2);
+  }
+
+  loadTickers();
+</script>
+
+</body>
+</html>
