@@ -2,7 +2,13 @@
 <html>
 <head>
   <title>Mini Trading</title>
+
+  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Lightweight Charts -->
+  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+
   <style>
     body {
       background:#111;
@@ -11,19 +17,21 @@
       text-align:center;
       padding:40px;
     }
+
     select, button {
       padding:10px;
       margin:10px;
     }
-    pre {
-      text-align:left;
-      margin-top:30px;
-      background:#222;
-      padding:20px;
-      overflow:auto;
+
+    #chart {
+      width:100%;
+      max-width:900px;
+      height:500px;
+      margin:40px auto;
     }
   </style>
 </head>
+
 <body>
 
 <h1>Mini Trading 📈</h1>
@@ -31,29 +39,54 @@
 <select id="tickerSelect"></select>
 <button onclick="loadData()">Carregar</button>
 
-<pre id="output"></pre>
+<div id="chart"></div>
 
 <script>
   const { createClient } = supabase;
+
   const client = createClient(
     "https://vlqteefeuxhovubojybd.supabase.co",
     "sb_publishable_KmHWU0IJzCkwXBWzWMe1WQ_M-sSaxk0"
   );
+
+  let chart;
+  let lineSeries;
+
+  function createChart() {
+    const chartContainer = document.getElementById("chart");
+    chartContainer.innerHTML = "";
+
+    chart = LightweightCharts.createChart(chartContainer, {
+      layout: {
+        background: { color: "#111" },
+        textColor: "#DDD"
+      },
+      grid: {
+        vertLines: { color: "#222" },
+        horzLines: { color: "#222" }
+      },
+      width: chartContainer.clientWidth,
+      height: 500,
+    });
+
+    lineSeries = chart.addLineSeries({
+      color: "#4CAF50",
+      lineWidth: 2
+    });
+  }
 
   async function loadTickers() {
     const { data, error } = await client
       .from("prices")
       .select("ticker");
 
-    if (error) {
-      document.getElementById("output").innerText = error.message;
-      return;
-    }
+    if (error) return;
 
     const uniqueTickers = [...new Set(data.map(item => item.ticker))];
 
     const select = document.getElementById("tickerSelect");
     select.innerHTML = "";
+
     uniqueTickers.forEach(ticker => {
       const option = document.createElement("option");
       option.value = ticker;
@@ -71,16 +104,19 @@
       .eq("ticker", ticker)
       .order("date", { ascending: true });
 
-    if (error) {
-      document.getElementById("output").innerText = error.message;
-      return;
-    }
+    if (error) return;
 
-    document.getElementById("output").innerText =
-      JSON.stringify(data, null, 2);
+    const chartData = data.map(item => ({
+      time: item.date,
+      value: parseFloat(item.price)
+    }));
+
+    createChart();
+    lineSeries.setData(chartData);
   }
 
   loadTickers();
+  createChart();
 </script>
 
 </body>
