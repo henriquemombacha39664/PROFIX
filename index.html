@@ -3,43 +3,50 @@
 <head>
   <title>Mini Trading</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body style="background:#111; color:white; font-family:Arial; text-align:center; padding:40px;">
-
-  <h1>Mini Trading 📈</h1>
-
-  <input 
-    id="tickerInput" 
-    placeholder="Digite o ticker (ex: PETR4)" 
-    style="padding:10px; width:250px;"
-  />
-  <button onclick="loadData()" style="padding:10px;">Buscar</button>
-
-  <pre id="output" style="text-align:left; margin-top:30px;"></pre>
-
-  <script>
-    const supabase = window.supabase.createClient(
-      "https://vlqteefeuxhovubojybd.supabase.co",
-      "sb_publishable_KmHWU0IJzCkwXBWzWMe1WQ_M-sSaxk0"
-    );
-
-    async function loadData() {
-      const ticker = document.getElementById("tickerInput").value;
-
-      const { data, error } = await supabase
-        .from("prices")
-        .select("*")
-        .eq("ticker", ticker)
-        .order("date", { ascending: true });
-
-      if (error) {
-        document.getElementById("output").innerText = "Erro: " + error.message;
-        return;
-      }
-
-      document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+  <style>
+    body {
+      background:#111;
+      color:white;
+      font-family:Arial;
+      text-align:center;
+      padding:40px;
     }
-  </script>
+    select, button {
+      padding:10px;
+      margin:10px;
+    }
+    pre {
+      text-align:left;
+      margin-top:30px;
+      background:#222;
+      padding:20px;
+      overflow:auto;
+    }
+  </style>
+</head>
+<body>
 
-</body>
-</html>
+<h1>Mini Trading 📈</h1>
+
+<select id="tickerSelect"></select>
+<button onclick="loadData()">Carregar</button>
+
+<pre id="output"></pre>
+
+<script>
+  const supabase = window.supabase.createClient(
+    "https://vlqteefeuxhovubojybd.supabase.co",
+    "sb_publishable_KmHWU0IJzCkwXBWzWMe1WQ_M-sSaxk0"
+  );
+
+  async function loadTickers() {
+    const { data, error } = await supabase
+      .from("prices")
+      .select("ticker");
+
+    if (error) {
+      document.getElementById("output").innerText = error.message;
+      return;
+    }
+
+    const uniqueTickers = [...new Set(data.map(item => item.tic]()
