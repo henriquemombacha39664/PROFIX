@@ -6,8 +6,8 @@
   <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- Lightweight Charts -->
-  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     body {
@@ -23,11 +23,10 @@
       margin:10px;
     }
 
-    #chart {
-      width:100%;
+    canvas {
       max-width:900px;
-      height:500px;
       margin:40px auto;
+      display:block;
     }
   </style>
 </head>
@@ -39,7 +38,7 @@
 <select id="tickerSelect"></select>
 <button onclick="loadData()">Carregar</button>
 
-<div id="chart"></div>
+<canvas id="priceChart"></canvas>
 
 <script>
   const { createClient } = supabase;
@@ -50,30 +49,6 @@
   );
 
   let chart;
-  let lineSeries;
-
-  function createChart() {
-    const chartContainer = document.getElementById("chart");
-    chartContainer.innerHTML = "";
-
-    chart = LightweightCharts.createChart(chartContainer, {
-      layout: {
-        background: { color: "#111" },
-        textColor: "#DDD"
-      },
-      grid: {
-        vertLines: { color: "#222" },
-        horzLines: { color: "#222" }
-      },
-      width: chartContainer.clientWidth,
-      height: 500,
-    });
-
-    lineSeries = chart.addLineSeries({
-      color: "#4CAF50",
-      lineWidth: 2
-    });
-  }
 
   async function loadTickers() {
     const { data, error } = await client
@@ -106,17 +81,50 @@
 
     if (error) return;
 
-    const chartData = data.map(item => ({
-      time: item.date,
-      value: parseFloat(item.price)
-    }));
+    const labels = data.map(item => item.date);
+    const prices = data.map(item => parseFloat(item.price));
 
-    createChart();
-    lineSeries.setData(chartData);
+    if (chart) {
+      chart.destroy();
+    }
+
+    const ctx = document.getElementById("priceChart").getContext("2d");
+
+    chart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: ticker,
+          data: prices,
+          borderColor: "#4CAF50",
+          backgroundColor: "rgba(76,175,80,0.1)",
+          borderWidth: 2,
+          tension: 0.2
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: { color: "white" }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: "white" },
+            grid: { color: "#222" }
+          },
+          y: {
+            ticks: { color: "white" },
+            grid: { color: "#222" }
+          }
+        }
+      }
+    });
   }
 
   loadTickers();
-  createChart();
 </script>
 
 </body>
