@@ -34,13 +34,14 @@
 <pre id="output"></pre>
 
 <script>
-  const supabase = window.supabase.createClient(
+  const { createClient } = supabase;
+  const client = createClient(
     "https://vlqteefeuxhovubojybd.supabase.co",
     "sb_publishable_KmHWU0IJzCkwXBWzWMe1WQ_M-sSaxk0"
   );
 
   async function loadTickers() {
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from("prices")
       .select("ticker");
 
@@ -52,6 +53,7 @@
     const uniqueTickers = [...new Set(data.map(item => item.ticker))];
 
     const select = document.getElementById("tickerSelect");
+    select.innerHTML = "";
     uniqueTickers.forEach(ticker => {
       const option = document.createElement("option");
       option.value = ticker;
@@ -63,7 +65,7 @@
   async function loadData() {
     const ticker = document.getElementById("tickerSelect").value;
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from("prices")
       .select("*")
       .eq("ticker", ticker)
